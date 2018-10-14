@@ -2,15 +2,29 @@ run.sim <- function(prms,
                     prms.ls,
                     prms.sim,
                     print=FALSE,
-                    plot=FALSE) {
+                    plot=FALSE,
+                    load.dir=NA,
+                    ii,
+                    save.path,
+                    ...) {
 
-  pop <- create.pop(prms, prms.ls)
-  strategies <- create.strategies(prms,
-                                  initial.strat=prms.sim$initial.strat)
+#load pop from previous run
+  if(!is.na(load.dir)){
+  	pop <- load.pop(ii, load.dir, save.path, ...) 
+	strategies <- load.strategies(ii, load.dir, save.path, initial.strat=prms.sim$initial.strat, ...)
+	}
+#create new pop
+  else	{
+  	pop <- create.pop(prms, prms.ls)
+  	strategies <- create.strategies(prms, initial.strat=prms.sim$initial.strat)
+  }
+
+  recol <- array('c', dim=dim(pop)[1:2])
 
   n.saves <- ceiling(prms.sim$n.gens/prms.sim$save.freq)+1
   pop.list   <- vector('list', n.saves)
   strat.list <- vector('list', n.saves)
+  recol.list <- vector('list', n.saves)
   mds <- matrix(nrow=2, ncol=n.saves)
   mss <- matrix(nrow=2, ncol=n.saves)
   deltags <- matrix(nrow=2, ncol=n.saves)
@@ -23,6 +37,7 @@ run.sim <- function(prms,
     if(i%%prms.sim$save.freq==0) {
       pop.list[[(i/prms.sim$save.freq)+1]]   <- pop
       strat.list[[(i/prms.sim$save.freq)+1]] <- strategies
+      recol.list[[(i/prms.sim$save.freq)+1]] <- recol
       mds[,(i/prms.sim$save.freq)+1]     <- md
       mss[,(i/prms.sim$save.freq)+1]     <- ms
       deltags[,(i/prms.sim$save.freq)+1] <- dg
@@ -35,6 +50,7 @@ run.sim <- function(prms,
                   prms.sim=prms.sim,
                   pop.list=pop.list,
                   strat.list=strat.list,
+                  recol.list=recol.list,
                   extinction.time=i,
                   mds=mds,
                   mss=mss,
@@ -68,6 +84,7 @@ run.sim <- function(prms,
     }  
     pop <- ng$pop
     strategies <- ng$strategies
+    recol <- ng$recol
     md <- ng$md
     ms <- ng$ms
     dg <- ng$dg
@@ -78,6 +95,7 @@ run.sim <- function(prms,
               prms.sim=prms.sim,
               pop.list=pop.list,
               strat.list=strat.list,
+              recol.list=recol.list,
               extinction.time=NA,
               mds=mds,
               mss=mss,
@@ -161,9 +179,11 @@ run.prms.ls.list <- function(save.path,
                              n.gens,
                              save.freq,
                              n.cores=1,
+                             K=10,
+                             num.strategies=50,
                              ...) {
 
-  ## remove files from previous run
+## remove files from previous run
   if(remove.files==TRUE) {
     unlink(file.path(save.path, save.dir), recursive=TRUE)
     dir.create(file.path(save.path, save.dir))
@@ -179,10 +199,21 @@ run.prms.ls.list <- function(save.path,
                               save.freq=save.freq,
                               initial.strat=initial.strat)
     prms.ls <- prms.ls.list[[ii]]
-    prms <- make.prms(landscape=prms.ls$landscape, ...)
-    out <- run.sim(prms,
+
+## NORMAL make.prms
+#    prms <- make.prms(landscape=prms.ls$landscape, ...)
+## make.prms for review response with K=100
+#	prms <- make.prms(landscape=prms.ls$landscape, K=100, ...)
+## make.prms for review response with num.strategies=10 or 100 or whatever you please
+	prms <- make.prms(landscape=prms.ls$landscape, num.strategies=num.strategies, K=K, ...)
+	out <- run.sim(prms,
                    prms.ls,
-                   prms.sim)
+                   prms.sim,
+                   ii=ii,
+                   save.path=save.path,
+                   ...)
+                   
+    
     ## could extract a few things here if we don't want to keep everything
     save(prms, prms.ls, prms.sim, out,
          file=file.path(save.path, save.dir, sprintf('%d.RData', ii)))

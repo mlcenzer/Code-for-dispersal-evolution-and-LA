@@ -14,3 +14,27 @@ create.strategies <- function(prms, initial.strat=1) {
   strategies[1:initial.strat] <- 1/initial.strat
   strategies
 }
+
+#####To add: is there a way to do this from a summary file?
+
+load.pop <- function(ii, load.dir, save.path, load.strat, ...){
+
+	load(file=sprintf('%s/%s/%s.RData', save.path, load.dir, ii))
+
+	prev.pop<-out$pop.list[[length(out$pop.list)]]
+
+	if(load.strat==FALSE) {nom.pop<-apply(prev.pop, 1:3, sum)
+	return(array(nom.pop, dim=prms$dim.pop))}
+	
+	else return(prev.pop)
+}
+
+load.strategies <- function(ii, load.dir, save.path, initial.strat, load.strat, ...){
+	load(file=sprintf('%s/%s/%s.RData', save.path, load.dir, ii))
+	final_strat <- out$strat.list[[length(out$strat.list)]]
+	if(load.strat==FALSE){
+		flat_strat<-create.strategies(prms, initial.strat)
+		return(flat_strat)
+	}
+	else return(final_strat)
+}

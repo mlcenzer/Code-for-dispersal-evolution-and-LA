@@ -71,35 +71,3 @@ cn_2D <- function(acl,n=16,amp=1,wn=wn_gauss,flt=flt_gauss_2D) {
   h <- Re(fft(fft(f)*fft(w),inverse=TRUE))/(n*n)
   return(list(cn=h,flt=f,n=n,m=m))
 }
-
-## bilinear interpolation
-## returns value at z by inter- and extrapolating on f
-## length(z)==2, dim(f)=c(n,n)
-bilerp <- function(z,f) {
-  n <- sqrt(length(f))
-  x <- xvec(n) # all points in the interior of (0,1), x[i+1]-x[i]=1/n
-  j <- max(min(ceiling((z[1]-x[1])*n),n-1),1) # find index, assuming dx == 1/n
-  k <- max(min(ceiling((z[2]-x[1])*n),n-1),1) # keeping index in range 1:(n-1)
-  y1 <- f[k,j]
-  y2 <- f[k,j+1]
-  y3 <- f[k+1,j+1]
-  y4 <- f[k+1,j]
-  
-  t <- (z[1]-x[j])*n
-  u <- (z[2]-x[k])*n
-  
-  return((1-t)*(1-u)*y1+t*(1-u)*y2+t*u*y3+(1-t)*u*y4)
-}
-
-resample_landscape <- function(u,m=ncol(u)) {
-  if (m==ncol(u)) return(u)
-  
-  x <- xvec(m)
-  r <- matrix(NA,m,m)
-  for (j in 1:m) {
-    for (i in 1:m) {
-      r[j,i] <- bilerp(c(x[i],x[j]),u)
-    }
-  }
-  return(r)
-}

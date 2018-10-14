@@ -50,16 +50,16 @@ make.prms.ls <- function(ltc.size=128, ## grid size
 make.prms <- function(landscape,
                       max.dist=10, ## max dispersal distance
                       n.bins=20, ## number of bins in dispersal kernel
-                      num.strategies=50,  ## probability an individual
-                                          ## has a mutation at the
-                                          ## migration locus 
+                      num.strategies=50,
                       n.alleles=c(A=2, M=1), ## (A-locus, M-locus)
                       r=1.01,
                       K=10,
+                      mut.size=0.01,
                       recomb=0,
                       ws=c(A.h1=1, a.h1=1, A.h2=1, a.h2=1),
                       mr.A=1e-4,
-                      disturb.r=0) {
+                      disturb.r=0,
+                      ...) {
 
   if(n.bins>max.dist) {
     cat('ERROR: n.bins>max.dist\n')
@@ -163,6 +163,7 @@ make.prms <- function(landscape,
        K=K,
        fitness=fitness,
        real.hab.fit=real.hab.fit,
+       mut.size=mut.size,
        recomb=recomb,
        mr.A=mr.A,
        disturb.r=disturb.r)
